@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import path from 'node:path';
+const dir=path.resolve('.data');
+if(!fs.existsSync(path.join(dir,'admin.json'))) throw new Error('请先启动服务以初始化管理账户');
+const password=crypto.randomBytes(18).toString('base64url');
+const salt=crypto.randomBytes(16).toString('hex');
+fs.writeFileSync(path.join(dir,'admin.json'),JSON.stringify({salt,hash:crypto.scryptSync(password,salt,64).toString('hex')}),{mode:0o600});
+fs.writeFileSync(path.join(dir,'admin-initial-password.txt'),password+'\n',{mode:0o600});
+fs.writeFileSync(path.join(dir,'session-secret'),crypto.randomBytes(48).toString('hex'),{mode:0o600});
+console.log('密码已重新生成并写入 .data/admin-initial-password.txt。请重启服务，使旧会话失效。');
